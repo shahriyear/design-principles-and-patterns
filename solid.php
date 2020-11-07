@@ -1,9 +1,9 @@
 <?php
- 
- interface TransactionInterface
- {
-     public function transaction($amount);
- }
+
+interface TransactionInterface
+{
+    public function transaction($amount);
+}
   
  abstract class TransactionAbstract
  {
@@ -31,35 +31,8 @@
  
  
 
- class Account extends TransactionAbstract
+ class Transaction extends TransactionAbstract
  {
-     private $username;
-     private $accountType;
-     private $status = 0;
- 
-     
-     public function open($username, $accountType)
-     {
-         if ($this->status == 1) {
-             return 'Can not create a new user!'.PHP_EOL.PHP_EOL;
-         }
-         $this->username = $username;
-         $this->accountType = $accountType;
-         $this->status = 1;
-         return "Dear, {$username} Congrats your {$accountType} account is ready!".PHP_EOL.PHP_EOL;
-     }
-         
-     public function close()
-     {
-         if ($this->status == 0) {
-             return;
-         }
-         $msg = "Dear, {$this->username} your {$this->accountType} account is closed!";
-         $this->username = '';
-         $this->accountType = '';
-         $this->isClosed = 0;
-         return $msg;
-     }
  }
 
 
@@ -96,25 +69,230 @@
      }
  }
  
- $account = new Account;
+  
+  class LoanSanctionTransaction implements TransactionInterface
+  {
+      public function transaction($amount)
+      {
+          return "Loan sanction payment {$amount} tk is successful!";
+      }
+  }
+ class LoanInstallmentTransaction implements TransactionInterface
+ {
+     public function transaction($amount)
+     {
+         return "Loan installment payment {$amount} tk is successful!";
+     }
+ }
+ 
+//  $transaction = new Transaction;
 
- //account open method
- echo $account->open("Sam", 'saving');
+//  //account open method
+// //  echo $account->open("Sam", 'saving');
  
- //payment method with dedicated setter
- echo $account->setTypeOfTransaction(new PaymentTransaction)->makeTransaction(100).PHP_EOL.PHP_EOL;
+// //payment method
+//  echo $transaction->makeTransaction(120, new PaymentTransaction).PHP_EOL.PHP_EOL;
+ 
+//  // withdraw method
+//  echo $transaction->makeTransaction(-110, new WithdrawTransaction).PHP_EOL.PHP_EOL;
+ 
+//  // reverse pending method
+//  echo $transaction->makeTransaction(10, new ReversePendingTransaction).PHP_EOL.PHP_EOL;
+ 
+//  // reverse confirmed method
+//  echo $transaction->makeTransaction(10, new ReverseConfirmTransaction).PHP_EOL.PHP_EOL;
+ 
+//  //account close method
+//  //echo $account->close().PHP_EOL.PHP_EOL;
+ 
+ 
+ 
+ 
+ 
 
-//payment method
- echo $account->makeTransaction(120, new PaymentTransaction).PHP_EOL.PHP_EOL;
  
- // withdraw method
- echo $account->makeTransaction(-110, new WithdrawTransaction).PHP_EOL.PHP_EOL;
+ interface AccountInterface
+ {
+     public function open();
+     public function close();
+     public function balance();
+ }
  
- // reverse pending method
- echo $account->makeTransaction(10, new ReversePendingTransaction).PHP_EOL.PHP_EOL;
+ abstract class AccountAbstract
+ {
+     private $typeOfAccount;
  
- // reverse confirmed method
- echo $account->makeTransaction(10, new ReverseConfirmTransaction).PHP_EOL.PHP_EOL;
+     public function setTypeOfAccount(AccountInterface $typeOfAccount)
+     {
+         $this->typeOfAccount = $typeOfAccount;
+         return $this;
+     }
+     
+     public function openAccount()
+     {
+         if (!$this->typeOfAccount) {
+             return "Set type of account first!";
+         }
+         
+         return $this->typeOfAccount->open();
+     }
+     
+     public function closeAccount()
+     {
+         if (!$this->typeOfAccount) {
+             return "Set type of account first!";
+         }
+         
+         return $this->typeOfAccount->close();
+     }
+     
+     public function balanceAccount()
+     {
+         if (!$this->typeOfAccount) {
+             return "Set type of account first!";
+         }
+         
+         return $this->typeOfAccount->balance();
+     }
+ }
  
- //account close method
- echo $account->close().PHP_EOL.PHP_EOL;
+ 
+ class Account extends AccountAbstract
+ {
+ }
+ 
+ class SavingAccount implements AccountInterface
+ {
+     public function open()
+     {
+         return "Saving Account created";
+     }
+     
+     public function close()
+     {
+         return "Saving Account closed";
+     }
+     
+     public function balance()
+     {
+         return "Saving Account balance";
+     }
+ }
+ 
+  class LoanAccount implements AccountInterface
+  {
+      public function open()
+      {
+          return "Loan Account created";
+      }
+     
+      public function close()
+      {
+          return "Loan Account closed";
+      }
+     
+      public function balance()
+      {
+          return "Loan Account balance";
+      }
+  }
+ 
+//  $account = new Account;
+//  $account->setTypeOfAccount(new SavingAccount);
+//  echo $account->openAccount().PHP_EOL.PHP_EOL;
+ 
+//  $account->setTypeOfAccount(new LoanAccount);
+//  echo $account->closeAccount().PHP_EOL.PHP_EOL;
+ 
+ 
+ 
+ 
+ 
+// /////////////Demo Controller////////////// //
+ 
+ class SavingAccountController
+ {
+     public function create()
+     {
+         $account = new Account;
+         $account->setTypeOfAccount(new SavingAccount);
+         echo $account->openAccount().PHP_EOL.PHP_EOL;
+     }
+     
+     public function deposit()
+     {
+         $transaction = new Transaction;
+         echo $transaction->makeTransaction(150, new PaymentTransaction).PHP_EOL.PHP_EOL;
+     }
+     
+     public function withdraw()
+     {
+         $transaction = new Transaction;
+         echo $transaction->makeTransaction(-40, new PaymentTransaction).PHP_EOL.PHP_EOL;
+     }
+     
+     public function balance()
+     {
+         $account = new Account;
+         $account->setTypeOfAccount(new SavingAccount);
+         echo $account->balanceAccount().PHP_EOL.PHP_EOL;
+     }
+     
+     public function destroy()
+     {
+         $account = new Account;
+         $account->setTypeOfAccount(new SavingAccount);
+         echo $account->closeAccount().PHP_EOL.PHP_EOL;
+     }
+ }
+ 
+ $o = new SavingAccountController();
+ $o->create();
+ $o->deposit();
+ $o->withdraw();
+ $o->balance();
+ $o->destroy();
+ 
+  class LoanAccountController
+  {
+      public function create()
+      {
+          $account = new Account;
+          $account->setTypeOfAccount(new LoanAccount);
+          echo $account->openAccount().PHP_EOL.PHP_EOL;
+      }
+     
+      public function sanction()
+      {
+          $transaction = new Transaction;
+          echo $transaction->makeTransaction(-1500, new LoanSanctionTransaction).PHP_EOL.PHP_EOL;
+          echo $transaction->makeTransaction(-15, new PaymentTransaction).PHP_EOL.PHP_EOL;
+      }
+     
+      public function installment()
+      {
+          $transaction = new Transaction;
+          echo $transaction->makeTransaction(50, new LoanInstallmentTransaction).PHP_EOL.PHP_EOL;
+      }
+     
+      public function balance()
+      {
+          $account = new Account;
+          $account->setTypeOfAccount(new LoanAccount);
+          echo $account->balanceAccount().PHP_EOL.PHP_EOL;
+      }
+     
+      public function destroy()
+      {
+          $account = new Account;
+          $account->setTypeOfAccount(new LoanAccount);
+          echo $account->closeAccount().PHP_EOL.PHP_EOL;
+      }
+  }
+ echo PHP_EOL.PHP_EOL;
+ $o = new LoanAccountController();
+ $o->create();
+ $o->sanction();
+ $o->installment();
+ $o->balance();
+ $o->destroy();
